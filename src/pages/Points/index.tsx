@@ -9,10 +9,12 @@ import {
   ScrollView,
   Image,
   SafeAreaView,
+  Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import MapView, { Marker } from "react-native-maps";
 import { SvgUri } from "react-native-svg";
+import * as Location from "expo-location";
 import api from "../../services/api";
 
 interface Item {
@@ -21,10 +23,52 @@ interface Item {
   image_url: string;
 }
 
+interface Point {
+  id: string;
+  name: string;
+  image_url: string;
+  image: string;
+  latitude: number;
+  longitude: number;
+}
+
+interface Params {
+  uf: string;
+  city: string;
+}
+
 const Points = () => {
-  const navigation = useNavigation();
   const [items, setItems] = useState<Item[]>([]);
-  const [selectedItems, setSelectedItems] = useState<Number[]>([]);
+  const [points, setPoints] = useState<Point[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [initialPosition, setInitialPosition] = useState<[number, number]>([
+    0,
+    0,
+  ]);
+  const navigation = useNavigation();
+  const route = useRoute();
+  const routeParams = route.params as Params;
+
+  useEffect(() => {
+    async function loadPosition() {
+      let { status } = await Location.requestPermissionsAsync();
+
+      if (status !== "granted") {
+        Alert.alert(
+          "Oooops...",
+          "Precisamos da sua permissão para obter a localização"
+        );
+        return;
+      }
+      const location = await Location.getCurrentPositionAsync({
+        enableHighAccuracy: true,
+      });
+      const { latitude, longitude } = location.coords;
+
+      setInitialPosition([latitude, longitude]);
+    }
+    loadPosition();
+  }, []);
 
   useEffect(() => {
     api.get("items").then((response) => {
@@ -32,15 +76,29 @@ const Points = () => {
     });
   }, []);
 
+  useEffect(() => {
+    api
+      .get("points", {
+        params: {
+          city: routeParams.city,
+          uf: routeParams.uf,
+          items: selectedItems,
+        },
+      })
+      .then((response) => {
+        setPoints(response.data);
+      });
+  }, [selectedItems]);
+
   function handleNavigateBack() {
     navigation.navigate("Home");
   }
 
-  function handleNavigateToDetail() {
-    navigation.navigate("Detail");
+  function handleNavigateToDetail(id: string) {
+    navigation.navigate("Detail", { point_id: id });
   }
 
-  function handleSelectItem(id: number) {
+  function handleSelectItem(id: string) {
     const isSelected = selectedItems.findIndex((item) => item === id);
     if (isSelected >= 0) {
       const filteredItems = selectedItems.filter((item) => item !== id);
@@ -61,32 +119,39 @@ const Points = () => {
           Encontre no mapa um ponto de coleta.
         </Text>
         <View style={styles.mapContainer}>
-          <MapView
-            style={styles.map}
-            initialRegion={{
-              latitude: -27.6745613,
-              longitude: -48.4887233,
-              latitudeDelta: 0.014,
-              longitudeDelta: 0.014,
-            }}
-          >
-            <Marker
-              style={styles.mapMarker}
-              coordinate={{ latitude: -27.6745613, longitude: -48.4887233 }}
-              onPress={handleNavigateToDetail}
+          {initialPosition[0] !== 0 && (
+            <MapView
+              style={styles.map}
+              initialRegion={{
+                latitude: initialPosition[0],
+                longitude: initialPosition[1],
+                latitudeDelta: 0.014,
+                longitudeDelta: 0.014,
+              }}
             >
-              <View style={styles.mapMarkerContainer}>
-                <Image
-                  style={styles.mapMarkerImage}
-                  source={{
-                    uri:
-                      "https://images.unsplash.com/photo-1589469562087-368e4993ee74?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1351&q=80",
+              {points.map((point) => (
+                <Marker
+                  key={String(point.id)}
+                  style={styles.mapMarker}
+                  coordinate={{
+                    latitude: point.latitude,
+                    longitude: point.longitude,
                   }}
-                />
-                <Text style={styles.mapMarkerTitle}>Mercado</Text>
-              </View>
-            </Marker>
-          </MapView>
+                  onPress={() => handleNavigateToDetail(point.id)}
+                >
+                  <View style={styles.mapMarkerContainer}>
+                    <Image
+                      style={styles.mapMarkerImage}
+                      source={{
+                        uri: point.image_url,
+                      }}
+                    />
+                    <Text style={styles.mapMarkerTitle}>{point.name}</Text>
+                  </View>
+                </Marker>
+              ))}
+            </MapView>
+          )}
         </View>
       </View>
       <View style={styles.itemsContainer}>
@@ -101,17 +166,13 @@ const Points = () => {
               key={String(item.id)}
               style={[
                 styles.item,
-                selectedItems.includes(item.id) ? styles.selectedItem : {},
+                selectedItems.includes(String(item.id))
+                  ? styles.selectedItem
+                  : {},
               ]}
-              onPress={() => handleSelectItem(item.id)}
+              onPress={() => handleSelectItem(String(item.id))}
             >
-              <SvgUri
-                width={42}
-                height={42}
-                uri={
-                  "https://dev.w3.org/SVG/tools/svgweb/samples/svg-files/cartman.svg"
-                }
-              />
+              <SvgUri width={42} height={42} uri={item.image_url} />
               <Text style={styles.itemTitle}>{item.title}</Text>
             </TouchableOpacity>
           ))}
