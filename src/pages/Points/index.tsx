@@ -15,7 +15,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import MapView, { Marker } from "react-native-maps";
 import { SvgUri } from "react-native-svg";
 import * as Location from "expo-location";
-import api from "../../services/api";
+import * as api from "../../services/api";
 
 interface Item {
   id: number;
@@ -33,8 +33,8 @@ interface Point {
 }
 
 interface Params {
-  uf: string;
-  city: string;
+  ufId: string;
+  cityId: string;
 }
 
 const Points = () => {
@@ -71,17 +71,17 @@ const Points = () => {
   }, []);
 
   useEffect(() => {
-    api.get("items").then((response) => {
+    api.local.get("items").then((response) => {
       setItems(response.data);
     });
   }, []);
 
   useEffect(() => {
-    api
+    api.local
       .get("points", {
         params: {
-          city: routeParams.city,
-          uf: routeParams.uf,
+          city: routeParams.cityId,
+          uf: routeParams.ufId,
           items: selectedItems,
         },
       })

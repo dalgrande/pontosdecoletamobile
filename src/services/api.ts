@@ -1,7 +1,8 @@
 import axios from "axios";
 
-const api = axios.create({
+export const local = axios.create({
   baseURL: `http://192.168.0.54:3333`,
 });
-
-export default api;
+export const ibge = axios.create({
+  baseURL: "https://servicodados.ibge.gov.br/api/v1",
+});
