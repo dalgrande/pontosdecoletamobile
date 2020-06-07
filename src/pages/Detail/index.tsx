@@ -12,7 +12,7 @@ import { Feather as Icon, FontAwesome } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { RectButton } from "react-native-gesture-handler";
-import api from "../../services/api";
+import * as api from "../../services/api";
 import * as MailComposer from "expo-mail-composer";
 
 interface Params {
@@ -42,7 +42,7 @@ const Detail = () => {
   const routeParams = route.params as Params;
 
   useEffect(() => {
-    api.get(`points/${routeParams.point_id}`).then((response) => {
+    api.local.get(`points/${routeParams.point_id}`).then((response) => {
       setData(response.data);
     });
   }, []);
