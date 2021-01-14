@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 export const local = axios.create({
-  baseURL: "http://192.168.0.23:3333/",
+  baseURL: "http://api.freetime.works/",
 });
 
 

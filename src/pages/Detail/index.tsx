@@ -20,7 +20,7 @@ interface Params {
 }
 
 interface Data {
-  point: {
+  serializedPoint: {
     image: string;
     image_url: string;
     name: string;
@@ -44,6 +44,7 @@ const Detail = () => {
   useEffect(() => {
     api.local.get(`points/${routeParams.point_id}`).then((response) => {
       setData(response.data);
+      console.log(response.data);
     });
   }, []);
 
@@ -54,17 +55,17 @@ const Detail = () => {
   function handleComposeMail() {
     MailComposer.composeAsync({
       subject: "Interesse na coleta de resíduos",
-      recipients: [data.point.email],
+      recipients: [data.serializedPoint.email],
     });
   }
 
   function handleWhatsapp() {
     Linking.openURL(
-      `whatsapp://send?phone=${data.point.whatsapp}&text=Tenho interesse sobre coleta de resíduos`
+      `whatsapp://send?phone=${data.serializedPoint.whatsapp}&text=Tenho interesse sobre coleta de resíduos`
     );
   }
 
-  if (!data.point) {
+  if (!data.serializedPoint) {
     return null;
   }
   return (
@@ -76,16 +77,16 @@ const Detail = () => {
         <Image
           style={styles.pointImage}
           source={{
-            uri: data.point.image_url,
+            uri: data.serializedPoint.image_url,
           }}
         />
-        <Text style={styles.pointName}>{data.point.name}</Text>
+        <Text style={styles.pointName}>{data.serializedPoint.name}</Text>
         <Text style={styles.pointItems}>
           {data.items.map((item) => item.title).join(",")}
         </Text>
         <View style={styles.address}>
-          <Text style={styles.addressTitle}>{data.point.city}</Text>
-          <Text style={styles.addressContent}>{data.point.uf}</Text>
+          <Text style={styles.addressTitle}>{data.serializedPoint.city}</Text>
+          <Text style={styles.addressContent}>{data.serializedPoint.uf}</Text>
         </View>
         <View style={styles.footer}>
           <RectButton style={styles.button}>

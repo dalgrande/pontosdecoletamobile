@@ -179,7 +179,6 @@ const Points = () => {
           ))}
         </ScrollView>
       </View>
-      <Text>Arraste para o lado para ver mais tipos</Text>
     </SafeAreaView>
   );
 };
