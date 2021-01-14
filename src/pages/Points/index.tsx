@@ -26,8 +26,8 @@ interface Item {
 interface Point {
   id: string;
   name: string;
-  image_url: string;
   image: string;
+  image_url: string;
   latitude: number;
   longitude: number;
 }
@@ -91,7 +91,8 @@ const Points = () => {
   }, [selectedItems]);
 
   function handleNavigateBack() {
-    navigation.navigate("Home");
+    // navigation.navigate("Home");
+    navigation.goBack();
   }
 
   function handleNavigateToDetail(id: string) {
@@ -178,6 +179,7 @@ const Points = () => {
           ))}
         </ScrollView>
       </View>
+      <Text>Arraste para o lado para ver mais tipos</Text>
     </SafeAreaView>
   );
 };

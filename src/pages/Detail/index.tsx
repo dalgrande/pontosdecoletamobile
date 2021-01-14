@@ -48,7 +48,7 @@ const Detail = () => {
   }, []);
 
   function handleNavigateBack() {
-    navigation.navigate("Home");
+    navigation.goBack();
   }
 
   function handleComposeMail() {
